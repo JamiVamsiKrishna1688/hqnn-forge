@@ -604,10 +604,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   arms (`POSITIVE_CONTROL_MAX_ATOMS`: each PCA fit takes the covariance of its `2^N − 1`
   columns, 2.6 GiB at 13 atoms), an `lr` that is not finite and `> 0`, and `batch_size < 1`,
   also as values of the search space (`--lr 0` ran to completion, and `--batch-size 0` too with
-  tuning on). `--patience 0` now means no early stopping, recorded as `null` (a negative
+  tuning on), and `max_epochs < 1` and `patience < 1` (other than `None`) as values of the
+  search space too. `--patience 0` now means no early stopping, recorded as `null` (a negative
   `--patience` ends in a command-line error), and a dataset name outside `DATASETS` raises a
   `ValueError` listing the allowed names instead of `tuple.index(x): x not in tuple`
-  (#540, #606)
+  (#540, #605, #606)
 
 ### Removed
 - `PCANormalizer`'s `copy` option, which never had an effect (#77)

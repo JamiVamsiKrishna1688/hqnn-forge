@@ -416,14 +416,52 @@ class TestGrid:
                 dict(search_space={"lr": (0.01, math.inf)}),
                 "search_space['lr'] must hold finite values > 0; got [0.01, inf].",
             ),
+            (
+                dict(search_space={"max_epochs": (0,)}),
+                "search_space['max_epochs'] must hold values >= 1; got [0].",
+            ),
+            (
+                dict(search_space={"max_epochs": (10, -1)}),
+                "search_space['max_epochs'] must hold values >= 1; got [10, -1].",
+            ),
+            (
+                dict(search_space={"max_epochs": (None, 50)}),
+                "search_space['max_epochs'] must hold values >= 1; got [None, 50].",
+            ),
+            (
+                dict(search_space={"patience": (0,)}),
+                "search_space['patience'] must hold values >= 1 or None; got [0].",
+            ),
+            (
+                dict(search_space={"patience": (5, -3, None)}),
+                "search_space['patience'] must hold values >= 1 or None; got [5, -3, None].",
+            ),
         ],
     )
     def test_refused_settings_name_the_setting_and_the_value(
         self, changes: dict[str, Any], message: str
     ) -> None:
-        """#540: values ``train_model`` or Adam would take late, or not at all, are refused here."""
+        """
+        #540, #605: values ``train_model`` or Adam would take late, or not at all, are refused
+        here.
+        """
         with pytest.raises(ValueError, match=f"^{re.escape(message)}$"):
             bench.Settings(**changes)
+
+    @pytest.mark.parametrize(
+        "space",
+        [
+            {"max_epochs": (1, 10)},
+            {"patience": (1, None)},
+            {"patience": (None,)},
+            {"max_epochs": (1,), "patience": (1, 5, None)},
+        ],
+    )
+    def test_valid_search_space_max_epochs_and_patience(self, space: dict[str, Any]) -> None:
+        """#605: candidates on the bounds, and ``None`` for ``patience``, are accepted."""
+        settings = bench.Settings(search_space=space)
+        for key, expected in space.items():
+            assert settings.search_space[key] == expected
 
     def test_a_limit_binds_only_where_its_arm_runs(self) -> None:
         """``MAX_ATOMS`` is the Rydberg maps' limit and ``circuit_layers`` is arm D's depth."""

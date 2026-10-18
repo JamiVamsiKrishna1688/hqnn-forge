@@ -450,13 +450,14 @@ class Settings:
         A key of :data:`LOSSES`.
     lr, max_epochs, batch_size, patience:
         Adam learning rate (finite and ``> 0``) and the ``train_model`` settings
-        (``batch_size >= 1``), unless tuned.  ``patience=None`` is no early
+        (``max_epochs``, ``batch_size`` and ``patience`` ``>= 1``, ``patience``
+        also ``None``), unless tuned.  ``patience=None`` is no early
         stopping: every model trains for ``max_epochs`` epochs
         (``--patience 0``, recorded as ``null``; a negative ``--patience`` is a
         command-line error).
     n_trials, inner_folds, search_space:
         The tuning budget (0 trials: no tuning) and its search space; its
-        ``lr`` and ``batch_size`` values are held to the bounds above.
+        values are held to the bounds above.
     n_samples:
         Samples of the positive control.
     random_state:
@@ -556,6 +557,16 @@ class Settings:
         rates = self.search_space.get("lr", ())
         if any(not 0 < value < math.inf for value in rates):
             raise ValueError(f"search_space['lr'] must hold finite values > 0; got {list(rates)}.")
+        epochs = self.search_space.get("max_epochs", ())
+        if any(value is None or value < 1 for value in epochs):
+            raise ValueError(
+                f"search_space['max_epochs'] must hold values >= 1; got {list(epochs)}."
+            )
+        patiences = self.search_space.get("patience", ())
+        if any(value is not None and value < 1 for value in patiences):
+            raise ValueError(
+                f"search_space['patience'] must hold values >= 1 or None; got {list(patiences)}."
+            )
         if self.max_separation_rows is not None and self.max_separation_rows < 3:
             raise ValueError(
                 f"max_separation_rows must be >= 3 or None; got {self.max_separation_rows}."
